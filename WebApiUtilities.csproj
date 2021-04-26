@@ -146,16 +146,24 @@
     <Reference Include="Microsoft.AspNetCore.Mvc.Core">
       <HintPath>packages\Microsoft.AspNetCore.Mvc.Core.2.2.5\lib\netstandard2.0\Microsoft.AspNetCore.Mvc.Core.dll</HintPath>
     </Reference>
+    <Reference Include="System.Data.SqlClient">
+      <HintPath>packages\System.Data.SqlClient.4.8.2\lib\net461\System.Data.SqlClient.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Models\ApiResponse.cs" />
     <Compile Include="Models\ApiException.cs" />
     <Compile Include="BaseClasses\RequestBody.cs" />
+    <Compile Include="Helpers\ConnectionStringHelper.cs" />
+    <Compile Include="Helpers\PasswordHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="BaseClasses\" />
     <Folder Include="Models\" />
+    <Folder Include="Helpers\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
