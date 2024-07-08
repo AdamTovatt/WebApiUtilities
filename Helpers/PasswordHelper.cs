@@ -28,7 +28,7 @@ namespace WebApiUtilities.Helpers
             byte[] salt = new byte[16];
             Array.Copy(hashBytes, 0, salt, 0, 16);
 
-            var pbkdf2 = new Rfc2898DeriveBytes(input, salt, 10000);
+            Rfc2898DeriveBytes pbkdf2 = new Rfc2898DeriveBytes(input, salt, 10000);
             byte[] hash = pbkdf2.GetBytes(20);
 
             for (int i = 0; i < 20; i++)
@@ -48,7 +48,7 @@ namespace WebApiUtilities.Helpers
             byte[] salt;
             new RNGCryptoServiceProvider().GetBytes(salt = new byte[16]);
 
-            var pbkdf2 = new Rfc2898DeriveBytes(password, salt, 10000);
+            Rfc2898DeriveBytes pbkdf2 = new Rfc2898DeriveBytes(password, salt, 10000);
             byte[] hash = pbkdf2.GetBytes(20);
 
             byte[] hashBytes = new byte[36];

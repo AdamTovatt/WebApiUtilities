@@ -25,7 +25,7 @@ namespace Sakur.WebApiUtilities.Models
         /// </summary>
         /// <param name="errorMessage">The message for the exception</param>
         /// <param name="statusCode">The status code for the exception</param>
-        public ApiException(string errorMessage, HttpStatusCode statusCode)
+        public ApiException(string errorMessage, HttpStatusCode statusCode) : base(errorMessage)
         {
             ErrorMessage = errorMessage;
             StatusCode = statusCode;
@@ -36,7 +36,7 @@ namespace Sakur.WebApiUtilities.Models
         /// </summary>
         /// <param name="errorObject">Object containing data or information about the exception</param>
         /// <param name="statusCode">The status code for the exception</param>
-        public ApiException(object errorObject, HttpStatusCode statusCode)
+        public ApiException(object errorObject, HttpStatusCode statusCode) : base(errorObject.ToString())
         {
             ErrorObject = errorObject;
             StatusCode = statusCode;
@@ -48,11 +48,16 @@ namespace Sakur.WebApiUtilities.Models
         /// <param name="errorObject">Object containing data or information about the exception</param>
         /// <param name="errorMessage">The message for the exception</param>
         /// <param name="statusCode">The status code for the exceptio</param>
-        public ApiException(object errorObject, string errorMessage, HttpStatusCode statusCode)
+        public ApiException(object errorObject, string errorMessage, HttpStatusCode statusCode) : base(errorMessage)
         {
             ErrorObject = errorObject;
             ErrorMessage = errorMessage;
             StatusCode = statusCode;
+        }
+
+        public override string ToString()
+        {
+            return $"{ErrorMessage} ({StackTrace.Trim()})";
         }
     }
 }
