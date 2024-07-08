@@ -10,7 +10,7 @@ namespace WebApiUtilities.Helpers
     /// </summary>
     public static class PasswordHelper
     {
-        private static Random random = null;
+        private static Random random = new Random();
 
         /// <summary>
         /// Will validate a password
@@ -28,7 +28,9 @@ namespace WebApiUtilities.Helpers
             byte[] salt = new byte[16];
             Array.Copy(hashBytes, 0, salt, 0, 16);
 
+#pragma warning disable SYSLIB0041 // Type or member is obsolete
             Rfc2898DeriveBytes pbkdf2 = new Rfc2898DeriveBytes(input, salt, 10000);
+#pragma warning restore SYSLIB0041 // Type or member is obsolete
             byte[] hash = pbkdf2.GetBytes(20);
 
             for (int i = 0; i < 20; i++)
@@ -46,9 +48,13 @@ namespace WebApiUtilities.Helpers
         public static string CreatePasswordHash(string password)
         {
             byte[] salt;
+            #pragma warning disable SYSLIB0023 // Type or member is obsolete
             new RNGCryptoServiceProvider().GetBytes(salt = new byte[16]);
+#pragma warning restore SYSLIB0023 // Type or member is obsolete
 
+#pragma warning disable SYSLIB0041 // Type or member is obsolete
             Rfc2898DeriveBytes pbkdf2 = new Rfc2898DeriveBytes(password, salt, 10000);
+#pragma warning restore SYSLIB0041 // Type or member is obsolete
             byte[] hash = pbkdf2.GetBytes(20);
 
             byte[] hashBytes = new byte[36];

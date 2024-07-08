@@ -4,8 +4,19 @@ using Sakur.WebApiUtilities.Models;
 
 namespace WebApiUtilities.Helpers
 {
+    /// <summary>
+    /// Will help with connection strings
+    /// </summary>
     public static class ConnectionStringHelper
     {
+        /// <summary>
+        /// Will create a connection string from a url
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="sslMode"></param>
+        /// <param name="trustServerCertificate"></param>
+        /// <returns></returns>
+        /// <exception cref="ApiException"></exception>
         public static string GetConnectionStringFromUrl(string url, SslMode sslMode = SslMode.Require, bool trustServerCertificate = true)
         {
             if (url == null)
@@ -16,7 +27,7 @@ namespace WebApiUtilities.Helpers
                 Uri databaseUri = new Uri(url);
                 string[] userInfo = databaseUri.UserInfo.Split(':');
 
- 
+
                 ConnectionStringBuilder builder = new ConnectionStringBuilder
                 {
                     Host = databaseUri.Host,
@@ -38,11 +49,11 @@ namespace WebApiUtilities.Helpers
 
         private class ConnectionStringBuilder
         {
-            public string Host { get; set; }
+            public string? Host { get; set; }
             public int Port { get; set; }
-            public string Username { get; set; }
-            public string Password { get; set; }
-            public string Database { get; set; }
+            public string? Username { get; set; }
+            public string? Password { get; set; }
+            public string? Database { get; set; }
             public SslMode SslMode { get; set; }
             public bool TrustServerCertificate { get; set; }
 
@@ -99,8 +110,22 @@ namespace WebApiUtilities.Helpers
         }
     }
 
+    /// <summary>
+    /// What kind of ssl mode to use
+    /// </summary>
     public enum SslMode
     {
-        Disable, Prefer, Require
+        /// <summary>
+        /// If ssl is disabled
+        /// </summary>
+        Disable,
+        /// <summary>
+        /// If ssl is preferred
+        /// </summary>
+        Prefer,
+        /// <summary>
+        /// If ssl is required
+        /// </summary>
+        Require
     }
 }

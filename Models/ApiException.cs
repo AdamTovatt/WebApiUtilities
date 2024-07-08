@@ -3,12 +3,15 @@ using System.Net;
 
 namespace Sakur.WebApiUtilities.Models
 {
+    /// <summary>
+    /// An exception in the web api
+    /// </summary>
     public class ApiException : Exception
     {
         /// <summary>
         /// String message containing a description of the error
         /// </summary>
-        public string ErrorMessage { get; private set; }
+        public string? ErrorMessage { get; private set; }
 
         /// <summary>
         /// Status code to return from the api
@@ -18,7 +21,7 @@ namespace Sakur.WebApiUtilities.Models
         /// <summary>
         /// Object containing data for the exception
         /// </summary>
-        public object ErrorObject { get; private set; }
+        public object? ErrorObject { get; private set; }
 
         /// <summary>
         /// Will create a new instance of an api exception with a message and a statuscode
@@ -55,9 +58,13 @@ namespace Sakur.WebApiUtilities.Models
             StatusCode = statusCode;
         }
 
+        /// <summary>
+        /// Will convert the api exception to a readable string with the error message and the stack trace
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
-            return $"{ErrorMessage} ({StackTrace.Trim()})";
+            return $"{ErrorMessage} ({StackTrace?.Trim()})";
         }
     }
 }

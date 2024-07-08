@@ -1,8 +1,11 @@
-﻿using System.Net;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace Sakur.WebApiUtilities.Models
 {
+    /// <summary>
+    /// Response for an api request
+    /// </summary>
     public class ApiResponse : ObjectResult
     {
         /// <summary>
@@ -18,7 +21,7 @@ namespace Sakur.WebApiUtilities.Models
         /// Will create a new instance of an api response with a specified message and status code. Will create an anonymous object with a message field
         /// </summary>
         /// <param name="message">The message to be included in the body of the http response</param>
-        /// <param name="statusCode"><The status code for the api response/param>
+        /// <param name="statusCode">The status code for the api response</param>
         public ApiResponse(string message, HttpStatusCode statusCode = HttpStatusCode.OK) : base(statusCode)
         {
             Value = new { message };

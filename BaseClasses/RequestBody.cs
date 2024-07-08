@@ -9,6 +9,9 @@ using WebApiUtilities.Models;
 
 namespace Sakur.WebApiUtilities.BaseClasses
 {
+    /// <summary>
+    /// Request body for a web api request
+    /// </summary>
     public abstract class RequestBody
     {
         /// <summary>
@@ -71,7 +74,7 @@ namespace Sakur.WebApiUtilities.BaseClasses
             return true;
         }
 
-        private static object GetDefault(Type type)
+        private static object? GetDefault(Type type)
         {
             if (type.IsValueType)
                 return Activator.CreateInstance(type);
