@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace WebApiUtilities.Helpers
+namespace Sakur.WebApiUtilities.Helpers
 {
     /// <summary>
     /// Password related tools

@@ -4,8 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Sakur.WebApiUtilities.Helpers;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 
-namespace WebApiUtilities
+namespace Sakur.WebApiUtilities
 {
     /// <summary>
     /// Extension methods built into the web api utilities
@@ -227,6 +233,49 @@ namespace WebApiUtilities
                 return "(0)";
 
             return $"({string.Join(",", ids)})";
+        }
+
+        /// <summary>
+        /// Will setup the authentication for the service collection
+        /// </summary>
+        /// <param name="services">The service collection to use</param>
+        /// <param name="authDomain">The domain for the auth</param>
+        /// <param name="authAudience">The audience for the auth</param>
+        /// <param name="roles">The roles to have in the auth</param>
+        /// <param name="authenticationScheme">The scheme to use, default is "Bearer"</param>
+        /// <returns>The service collection again so that calls can be chained</returns>
+        public static IServiceCollection SetupAuth(
+            this IServiceCollection services,
+            string authDomain,
+            string authAudience,
+            List<string> roles,
+            string authenticationScheme = "Bearer")
+        {
+            services
+                .AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = authenticationScheme;
+                    options.DefaultChallengeScheme = authenticationScheme;
+                })
+                .AddJwtBearer(options =>
+                {
+                    options.Authority = authDomain;
+                    options.Audience = authAudience;
+
+                    // If the access token does not have a `sub` claim, `User.Identity.Name` will be `null`. Map it to a different claim by setting the NameClaimType below.
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        NameClaimType = ClaimTypes.NameIdentifier
+                    };
+                });
+
+            services.AddAuthorization(options =>
+            {
+                foreach (string role in roles)
+                    options.AddPolicy(role, policy => policy.Requirements.Add(new HasScopeRequirement(role, authDomain)));
+            });
+
+            return services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
         }
     }
 }

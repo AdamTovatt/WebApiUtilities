@@ -1,4 +1,4 @@
-﻿namespace WebApiUtilities.Models
+﻿namespace Sakur.WebApiUtilities.Models
 {
     /// <summary>
     /// Used to specify that a property is required in a request body not necessary if the validation of the body is done manually and the message for missing properties is

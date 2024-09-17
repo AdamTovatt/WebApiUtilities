@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace WebApiUtilities.Helpers
+namespace Sakur.WebApiUtilities.Helpers
 {
     /// <summary>
     /// Will help with getting environment variables

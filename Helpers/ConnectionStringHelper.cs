@@ -2,7 +2,7 @@
 using System.Text;
 using Sakur.WebApiUtilities.Models;
 
-namespace WebApiUtilities.Helpers
+namespace Sakur.WebApiUtilities.Helpers
 {
     /// <summary>
     /// Will help with connection strings
