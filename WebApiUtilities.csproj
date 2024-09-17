@@ -14,6 +14,7 @@
     <Title>SakurWebApiUtilities</Title>
     <Description>Tiny nuget package to help with web api development in asp.net core.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
