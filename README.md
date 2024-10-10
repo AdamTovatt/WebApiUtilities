@@ -30,6 +30,7 @@ builder.Services.SetupAuth();
 ```
 Will setup the authentication for the service collection
 
+```
 Parameters:
 services = The service collection to use
 authDomain = The domain for the auth
@@ -38,3 +39,4 @@ roles = The roles to have in the auth
 authenticationScheme = The scheme to use, default is "Bearer"
 
 Returns: The service collection again so that calls can be chained
+```
