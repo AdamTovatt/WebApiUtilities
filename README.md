@@ -28,12 +28,13 @@ TimeWindow: The time window in seconds during which MaxRequests amount of reques
 ```
 builder.Services.SetupAuth();
 ```
-/// <summary>
-/// Will setup the authentication for the service collection
-/// </summary>
-/// <param name="services">The service collection to use</param>
-/// <param name="authDomain">The domain for the auth</param>
-/// <param name="authAudience">The audience for the auth</param>
-/// <param name="roles">The roles to have in the auth</param>
-/// <param name="authenticationScheme">The scheme to use, default is "Bearer"</param>
-/// <returns>The service collection again so that calls can be chained</returns>
+Will setup the authentication for the service collection
+
+Parameters:
+services = The service collection to use
+authDomain = The domain for the auth
+authAudience = The audience for the auth
+roles = The roles to have in the auth
+authenticationScheme = The scheme to use, default is "Bearer"
+
+Returns: The service collection again so that calls can be chained
