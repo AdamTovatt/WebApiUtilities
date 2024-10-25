@@ -45,12 +45,25 @@ namespace Sakur.WebApiUtilities.BaseClasses
             List<string> properties = new List<string>();
             PropertyInfo[] propertyInfos = GetType().GetProperties();
 
-            foreach (PropertyInfo property in propertyInfos)
-            {
-                bool hasJsonIgnoreProperty = property.IsDefined(typeof(JsonIgnoreAttribute), false);
+            PropertyInfo[] requiredProperties = GetType().GetProperties().Where(x => x.IsDefined(typeof(RequiredAttribute), false)).ToArray();
 
-                if (!hasJsonIgnoreProperty && !HasValue(allowEmptyStrings, property))
-                    properties.Add(property.Name);
+            if (requiredProperties.Length > 0)
+            {
+                foreach (PropertyInfo property in requiredProperties)
+                {
+                    if (!HasValue(allowEmptyStrings, property))
+                        properties.Add(property.Name);
+                }
+            }
+            else
+            {
+                foreach (PropertyInfo property in propertyInfos)
+                {
+                    bool hasJsonIgnoreProperty = property.IsDefined(typeof(JsonIgnoreAttribute), false);
+
+                    if (!hasJsonIgnoreProperty && !HasValue(allowEmptyStrings, property))
+                        properties.Add(property.Name);
+                }
             }
 
             return properties;
