@@ -1,6 +1,17 @@
 # WebApiUtilities
-Tiny nuget package to help with web api development in asp.net core.
-Nuget link: https://www.nuget.org/packages/SakurWebApiUtilities/
+A lightweight NuGet package designed to enhance web API development in ASP.NET Core. It provides various utilities and features to streamline common tasks and improve the efficiency of API development.
+
+**NuGet link:** [SakurWebApiUtilities](https://www.nuget.org/packages/SakurWebApiUtilities/)
+
+## Key Features
+- **Rate Limiting**: Implement request rate limiting using `ClientStatistics` to track and enforce limits on client requests.
+- **Authentication Setup**: Simplifies configuration of authentication schemes with customizable parameters for domains, audiences, and roles.
+- **Scheduled Tasks**: Allows for the creation and management of recurring tasks that can be scheduled at specific intervals or times.
+- **Request Body Validation**: Automatically validates incoming request bodies with detailed error reporting for missing fields.
+- **Error Handling**: Provides `ApiException` and `ApiResponse` classes for structured error management and consistent API responses.
+- **Connection String Utilities**: Simplifies the creation of connection strings for database connections with custom SSL configurations.
+- **Password Management**: Offers methods for hashing, validating, and generating random passwords.
+- **Extension Methods**: Includes various helpful extension methods for common tasks, such as string manipulation and object property transfer.
 
 ## Rate Limiting
 This package includes support for request rate limiting, using `ClientStatistics` to track request history for each client.
