@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-namespace WebApiUtilities.TaskScheduling
+namespace Sakur.WebApiUtilities.TaskScheduling
 {
     /// <summary>
     /// Base class for scheduled tasks.

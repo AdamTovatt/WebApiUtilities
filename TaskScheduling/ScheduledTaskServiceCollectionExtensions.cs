@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace WebApiUtilities.TaskScheduling
+namespace Sakur.WebApiUtilities.TaskScheduling
 {
     /// <summary>
     /// Extension methods for adding scheduled tasks to the DI container.

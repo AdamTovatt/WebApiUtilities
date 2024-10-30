@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Sakur.WebApiUtilities.Helpers;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;

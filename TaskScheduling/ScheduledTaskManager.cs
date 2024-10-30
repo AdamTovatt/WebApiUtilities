@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace WebApiUtilities.TaskScheduling
+namespace Sakur.WebApiUtilities.TaskScheduling
 {
     /// <summary>
     /// Manages scheduled tasks.

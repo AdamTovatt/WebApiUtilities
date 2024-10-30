@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace WebApiUtilities.TaskScheduling
+namespace Sakur.WebApiUtilities.TaskScheduling
 {
     /// <summary>
     /// A task that should be run at regular intervals.
