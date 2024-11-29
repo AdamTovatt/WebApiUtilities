@@ -51,8 +51,20 @@ namespace Sakur.WebApiUtilities.BaseClasses
             {
                 foreach (PropertyInfo property in requiredProperties)
                 {
-                    if (!HasValue(allowEmptyStrings, property))
+                    object? value = GetValue(allowEmptyStrings, property);
+
+                    if (value == null)
+                    {
                         properties.Add(property.Name);
+                    }
+                    else // It does have a value but maybe it's not allowed, we have to check that
+                    {
+                        RequiredAttribute requiredAttribute = property.GetCustomAttribute<RequiredAttribute>()!;
+                        if (requiredAttribute.DisallowedValue != null && value.Equals(requiredAttribute.DisallowedValue))
+                        {
+                            properties.Add(property.Name); // We add it if a dissallowed value is specified and matches with the value of the property
+                        }
+                    }
                 }
             }
             else
@@ -61,7 +73,7 @@ namespace Sakur.WebApiUtilities.BaseClasses
                 {
                     bool hasJsonIgnoreProperty = property.IsDefined(typeof(JsonIgnoreAttribute), false);
 
-                    if (!hasJsonIgnoreProperty && !HasValue(allowEmptyStrings, property))
+                    if (!hasJsonIgnoreProperty && GetValue(allowEmptyStrings, property) == null)
                         properties.Add(property.Name);
                 }
             }
@@ -79,25 +91,37 @@ namespace Sakur.WebApiUtilities.BaseClasses
 
             foreach (PropertyInfo property in requiredProperties)
             {
-                if (!HasValue(allowEmptyStrings, property)) return false;
+                if (GetValue(allowEmptyStrings, property) == null) return false;
             }
 
             return true;
         }
 
-        private bool HasValue(bool allowEmptyStrings, PropertyInfo property)
+        /// <summary>
+        /// Will get a value, checking if it exists. If it isn't considered to exist null will be returned, otherwise the value will be returned.
+        /// </summary>
+        /// <param name="allowEmptyStrings">Wether to allow empty strings or not.</param>
+        /// <param name="property">The property to get the value of.</param>
+        /// <returns>The value of it exists, null otherwise.</returns>
+        private object? GetValue(bool allowEmptyStrings, PropertyInfo property)
         {
             if (property.PropertyType == typeof(string))
             {
                 string? value = (string?)property.GetValue(this);
 
                 if (value == null || (!allowEmptyStrings && value == string.Empty))
-                    return false;
-            }
-            else if (property.GetValue(this) == GetDefault(property.PropertyType))
-                return false;
+                    return null;
 
-            return true;
+                return value;
+            }
+            else
+            {
+                object? theValue = property.GetValue(this);
+                object? defaultValue = GetDefault(property.PropertyType);
+
+                if (theValue == defaultValue) return null;
+                return theValue;
+            }
         }
 
         private static object? GetDefault(Type type)
