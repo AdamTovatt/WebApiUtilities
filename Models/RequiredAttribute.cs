@@ -6,6 +6,9 @@
     /// </summary>
     public class RequiredAttribute : System.Attribute
     {
+        /// <summary>
+        /// The value that should not be allowed on a property.
+        /// </summary>
         public object? DisallowedValue { get; set; }
 
         /// <summary>
