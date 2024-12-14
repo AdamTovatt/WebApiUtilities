@@ -71,9 +71,10 @@ namespace Sakur.WebApiUtilities.BaseClasses
             {
                 foreach (PropertyInfo property in propertyInfos)
                 {
-                    bool hasJsonIgnoreProperty = property.IsDefined(typeof(JsonIgnoreAttribute), false);
+                    if (property.Name == "Valid" || property.IsDefined(typeof(JsonIgnoreAttribute), false))
+                        continue;
 
-                    if (!hasJsonIgnoreProperty && GetValue(allowEmptyStrings, property) == null)
+                    if (GetValue(allowEmptyStrings, property) == null)
                         properties.Add(property.Name);
                 }
             }
@@ -91,7 +92,20 @@ namespace Sakur.WebApiUtilities.BaseClasses
 
             foreach (PropertyInfo property in requiredProperties)
             {
-                if (GetValue(allowEmptyStrings, property) == null) return false;
+                object? value = GetValue(allowEmptyStrings, property);
+
+                if (value == null)
+                {
+                    return false;
+                }
+                else // It does have a value but maybe it's not allowed, we have to check that
+                {
+                    RequiredAttribute requiredAttribute = property.GetCustomAttribute<RequiredAttribute>()!;
+                    if (requiredAttribute.DisallowedValue != null && value.Equals(requiredAttribute.DisallowedValue))
+                    {
+                        return false; // We say it is not valid if a dissallowed value is specified and matches with the value of the property
+                    }
+                }
             }
 
             return true;
@@ -119,7 +133,8 @@ namespace Sakur.WebApiUtilities.BaseClasses
                 object? theValue = property.GetValue(this);
                 object? defaultValue = GetDefault(property.PropertyType);
 
-                if (theValue == defaultValue) return null;
+                if (theValue == null) return null;
+                if (theValue.Equals(defaultValue)) return null;
                 return theValue;
             }
         }
