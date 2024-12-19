@@ -116,6 +116,72 @@ builder.Services.AddScheduledTasks(
 
 This setup will handle instantiation and scheduling for registered tasks using the `ScheduledTaskManager`.
 
+## Queued Tasks
+
+WebApiUtilities provides support for queued background tasks, allowing you to enqueue tasks for immediate background execution. This is useful when you need to perform long-running operations without blocking the main request thread but still be sure they finish which you can't with the default tasks in .NET.
+
+### Example Use Cases:
+- **Thumbnail Generation**: Offload image processing tasks to the background.
+- **Email Notifications**: Send emails asynchronously after user actions.
+- **Data Import/Export**: Process large data imports without slowing down the main API.
+
+### Defining a Queued Task
+
+To define a queued task, create a class that inherits from `QueuedTaskBase` and implement the `ExecuteAsync` method:
+
+```csharp
+public class ThumbnailGenerationTask : QueuedTaskBase
+{
+    public string FilePath { get; }
+
+    public ThumbnailGenerationTask(string filePath)
+    {
+        FilePath = filePath;
+    }
+
+    public override async Task ExecuteAsync(CancellationToken cancellationToken)
+    {
+        await PhotoshopThumbnailHelper.CreateThumbnail(FilePath);
+    }
+}
+```
+
+### Adding Queued Task Processing
+
+In `Program.cs`, register the background task queue and processor:
+
+```csharp
+builder.Services.AddQueuedTaskProcessing();
+```
+
+This sets up the `BackgroundTaskQueue` and `QueuedTaskProcessor` needed for background task execution.
+
+### Enqueuing Tasks
+
+You can enqueue tasks using the `BackgroundTaskQueue` singleton:
+
+```csharp
+BackgroundTaskQueue.Instance.QueueTask(new ThumbnailGenerationTask("path/to/image.png"));
+```
+Alternatively, if using Dependency Injection:
+
+```csharp
+public class SomeService
+{
+    private readonly BackgroundTaskQueue _taskQueue;
+
+    public SomeService(BackgroundTaskQueue taskQueue)
+    {
+        _taskQueue = taskQueue;
+    }
+
+    public void GenerateThumbnail(string filePath)
+    {
+        _taskQueue.QueueTask(new ThumbnailGenerationTask(filePath));
+    }
+}
+```
+
 ## Request Body Validation
 
 The `RequestBody` class serves as a base class for defining the request body of your web API requests. It provides a structured way to validate incoming data and ensure that all required fields are present before processing the request.
@@ -160,6 +226,34 @@ In this example, the `MyRequest` class specifies that both `Name` and `Age` are 
 The Valid property can be overridden to provide custom validation logic if needed but then the automatically generated error messages might not be accurate since they are based on the `[Required]` attribute.
 
 If the required attribute is not used for any property a custom validation logic should be implemented in the `Valid` property. The `GetInvalidBodyMessage` and `GetMissingProperties` methods can still be used to generate error messages and will then assume all properties that don't have the JsonIgnore attribute are required.
+
+### Disallowed Values in the `[Required]` Attribute
+
+The `[Required]` attribute now includes a `DisallowedValue` property, allowing you to specify a value that should **not** be allowed for a property. If a property has this disallowed value, it will not be considered valid.
+
+#### Example Usage:
+
+```csharp
+public class MyRequest : RequestBody
+{
+    [Required(DisallowedValue = 0)] // We don't need to specify 0 for ints though
+    public int Age { get; set; }
+
+    [Required(DisallowedValue = "N/A")]
+    public string Name { get; set; }
+
+    public override bool Valid => ValidateByRequiredAttributes();
+}
+```
+
+In this example:
+- The `Age` property is required and cannot be `0`.
+- The `Name` property is required and cannot be `"N/A"`.
+
+#### Default Disallowed Values for Value Types
+
+For value types like `int`, the default disallowed value is `0` if no `DisallowedValue` is explicitly set. This means an `int` property marked with `[Required]` will not be considered valid if its value is `0`.
+You can say that for value types the `[Required]` attribute requires the value to not be the default value of that. For reference types or nullable value types or reference types the value that is not allowed by default regardless of the `DisallowedValue` property is null. If you want to have a value type that can be 0 you should of course not add the `[Required]` attribute so that it is not required to be non-default (which is often the same as non-zero).
 
 ## ApiException
 

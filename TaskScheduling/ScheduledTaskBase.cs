@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace Sakur.WebApiUtilities.TaskScheduling
 {
     /// <summary>
-    /// Base class for scheduled tasks.
+    /// Base class for scheduled tasks. Scheduled tasks are tasks that run automatically at regular intervals or at specific times.
     /// </summary>
     public abstract class ScheduledTaskBase
     {
