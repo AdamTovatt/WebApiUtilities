@@ -70,6 +70,73 @@ builder.Services.SetupAuth(
 );
 ```
 
+### Magic Link Authentication
+
+The package includes support for **Magic Link Authentication**, allowing users to log in without passwords by clicking a secure link sent to their email.
+
+### How It Works
+
+1. **Generate a Magic Link Token**: A secure, time-limited token is generated for a user.
+2. **Send the Link**: The token is included in a link sent via email.
+3. **Validate the Token**: The server validates the token when the user clicks the link.
+4. **Issue a JWT**: On successful validation, a JWT is issued to authenticate subsequent requests.
+
+### Base Class: `AuthHelperBase`
+
+The `AuthHelperBase` provides the core logic for generating and validating magic link tokens.
+
+#### Example Usage
+
+1. **Create a Derived Class**: Implement a derived class to provide configuration details.
+
+```csharp
+public sealed class AuthHelper : AuthHelperBase<AuthHelper>
+{
+    protected override void Initialize()
+    {
+        Configure(
+            magicLinkSecretKey: "YourMagicLinkSecretKey",
+            jwtSecretKey: "YourJwtSecretKey",
+            issuer: "your-issuer",
+            audience: "your-audience",
+            magicLinkExpirationMinutes: 15,
+            jwtExpirationMinutes: 60
+        );
+    }
+}
+```
+
+2. **Generate a Magic Link Token**:
+
+```csharp
+string userId = "user123";
+string token = AuthHelper.Instance.GenerateMagicToken(userId);
+string magicLink = $"https://yourdomain.com/auth/magic?token={token}";
+
+// Send the magic link via email
+```
+
+3. **Validate the Magic Link Token**:
+
+```csharp
+string token = "received-token-from-link";
+if (AuthHelper.Instance.ValidateMagicToken(token, out string? userId))
+{
+    // Token is valid; issue a JWT
+    string jwt = AuthHelper.Instance.GenerateJwtToken(userId, new[] { "user" });
+    // Return the JWT to the user
+}
+else
+{
+    // Token is invalid or expired
+}
+```
+
+### Notes
+
+- **Token Expiration**: The magic link token has a configurable expiration time (default is 15 minutes).
+- **Security**: Ensure the magic link is sent securely and only to the intended recipient.
+
 ## Scheduled Tasks
 WebApiUtilities provides utilities for setting up scheduled tasks that can run at specific times or intervals. This is useful for automating recurring operations, such as data cleanup, sending periodic notifications, or syncing external data.
 

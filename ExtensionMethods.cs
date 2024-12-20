@@ -240,14 +240,14 @@ namespace Sakur.WebApiUtilities
         /// <param name="services">The service collection to use</param>
         /// <param name="authDomain">The domain for the auth</param>
         /// <param name="authAudience">The audience for the auth</param>
-        /// <param name="roles">The roles to have in the auth</param>
+        /// <param name="permissions">The permissions to have in the auth</param>
         /// <param name="authenticationScheme">The scheme to use, default is "Bearer"</param>
         /// <returns>The service collection again so that calls can be chained</returns>
         public static IServiceCollection SetupAuth(
             this IServiceCollection services,
             string authDomain,
             string authAudience,
-            List<string> roles,
+            List<string> permissions,
             string authenticationScheme = "Bearer")
         {
             services
@@ -270,8 +270,8 @@ namespace Sakur.WebApiUtilities
 
             services.AddAuthorization(options =>
             {
-                foreach (string role in roles)
-                    options.AddPolicy(role, policy => policy.Requirements.Add(new HasScopeRequirement(role, authDomain)));
+                foreach (string permission in permissions)
+                    options.AddPolicy(permission, policy => policy.Requirements.Add(new HasScopeRequirement(permission, authDomain)));
             });
 
             return services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
