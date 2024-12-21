@@ -54,12 +54,6 @@ namespace Sakur.WebApiUtilities.Helpers
         /// <summary>
         /// Configures the authentication helper with the necessary settings.
         /// </summary>
-        /// <param name="magicLinkSecretKey">The secret key used for generating and validating magic link tokens.</param>
-        /// <param name="jwtSecretKey">The secret key used for generating and validating JWT tokens.</param>
-        /// <param name="issuer">The issuer for the JWT tokens.</param>
-        /// <param name="audience">The audience for the JWT tokens.</param>
-        /// <param name="magicLinkExpirationMinutes">The expiration time in minutes for magic link tokens.</param>
-        /// <param name="jwtExpirationMinutes">The expiration time in minutes for JWT tokens.</param>
         protected void Configure(
             string magicLinkSecretKey,
             string jwtSecretKey,
@@ -79,9 +73,6 @@ namespace Sakur.WebApiUtilities.Helpers
         /// <summary>
         /// Generates a magic link token for the specified user ID.
         /// </summary>
-        /// <param name="userId">The user ID to generate the token for.</param>
-        /// <returns>A magic link token as a string.</returns>
-        /// <exception cref="InvalidOperationException">Thrown if the secret key has not been initialized.</exception>
         public string GenerateMagicToken(string userId)
         {
             if (magicLinkSecretKey == null)
@@ -90,17 +81,13 @@ namespace Sakur.WebApiUtilities.Helpers
             long timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             string payload = $"{userId}:{timestamp}";
             using HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(magicLinkSecretKey));
-            string hash = Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(payload)));
-            return $"{Convert.ToBase64String(Encoding.UTF8.GetBytes(payload))}.{hash}";
+            string hash = ConvertToHex(hmac.ComputeHash(Encoding.UTF8.GetBytes(payload)));
+            return $"{ConvertToHex(Encoding.UTF8.GetBytes(payload))}.{hash}";
         }
 
         /// <summary>
         /// Validates a magic link token and extracts the user ID if valid.
         /// </summary>
-        /// <param name="token">The magic link token to validate.</param>
-        /// <param name="userId">The extracted user ID if validation is successful; otherwise, null.</param>
-        /// <returns><c>true</c> if the token is valid; otherwise, <c>false</c>.</returns>
-        /// <exception cref="InvalidOperationException">Thrown if the secret key has not been initialized.</exception>
         public bool ValidateMagicToken(string token, out string? userId)
         {
             userId = null;
@@ -111,11 +98,11 @@ namespace Sakur.WebApiUtilities.Helpers
             string[] parts = token.Split('.');
             if (parts.Length != 2) return false;
 
-            string payload = Encoding.UTF8.GetString(Convert.FromBase64String(parts[0]));
+            string payload = Encoding.UTF8.GetString(ConvertFromHex(parts[0]));
             string receivedHash = parts[1];
 
             using HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(magicLinkSecretKey));
-            string computedHash = Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(payload)));
+            string computedHash = ConvertToHex(hmac.ComputeHash(Encoding.UTF8.GetBytes(payload)));
 
             if (computedHash != receivedHash) return false;
 
@@ -130,10 +117,6 @@ namespace Sakur.WebApiUtilities.Helpers
         /// <summary>
         /// Generates a JWT token for the specified user ID and permissions.
         /// </summary>
-        /// <param name="userId">The user ID to generate the token for.</param>
-        /// <param name="permissions">A collection of permissions to include in the token.</param>
-        /// <returns>A JWT token as a string.</returns>
-        /// <exception cref="InvalidOperationException">Thrown if any required configuration setting has not been initialized.</exception>
         public string GenerateJwtToken(string userId, IEnumerable<string> permissions)
         {
             if (jwtSecretKey == null || issuer == null || audience == null)
@@ -158,6 +141,28 @@ namespace Sakur.WebApiUtilities.Helpers
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        /// <summary>
+        /// Converts a byte array to a hexadecimal string.
+        /// </summary>
+        private static string ConvertToHex(byte[] bytes)
+        {
+            StringBuilder hex = new StringBuilder(bytes.Length * 2);
+            foreach (byte b in bytes)
+                hex.AppendFormat("{0:x2}", b);
+            return hex.ToString();
+        }
+
+        /// <summary>
+        /// Converts a hexadecimal string to a byte array.
+        /// </summary>
+        private static byte[] ConvertFromHex(string hex)
+        {
+            byte[] bytes = new byte[hex.Length / 2];
+            for (int i = 0; i < bytes.Length; i++)
+                bytes[i] = Convert.ToByte(hex.Substring(i * 2, 2), 16);
+            return bytes;
         }
     }
 }
