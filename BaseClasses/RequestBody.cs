@@ -61,9 +61,10 @@ namespace Sakur.WebApiUtilities.BaseClasses
                     {
                         RequiredAttribute requiredAttribute = property.GetCustomAttribute<RequiredAttribute>()!;
                         if (requiredAttribute.DisallowedValue != null && value.Equals(requiredAttribute.DisallowedValue))
-                        {
                             properties.Add(property.Name); // We add it if a dissallowed value is specified and matches with the value of the property
-                        }
+
+                        if (requiredAttribute.GreaterThan != null && property.PropertyType == typeof(int) && !((int)value > requiredAttribute.GreaterThan))
+                            properties.Add(property.Name);
                     }
                 }
             }
@@ -102,9 +103,10 @@ namespace Sakur.WebApiUtilities.BaseClasses
                 {
                     RequiredAttribute requiredAttribute = property.GetCustomAttribute<RequiredAttribute>()!;
                     if (requiredAttribute.DisallowedValue != null && value.Equals(requiredAttribute.DisallowedValue))
-                    {
                         return false; // We say it is not valid if a dissallowed value is specified and matches with the value of the property
-                    }
+
+                    if (requiredAttribute.GreaterThan != null && property.PropertyType == typeof(int) && !((int)value > requiredAttribute.GreaterThan))
+                        return false;
                 }
             }
 
@@ -131,10 +133,14 @@ namespace Sakur.WebApiUtilities.BaseClasses
             else
             {
                 object? theValue = property.GetValue(this);
-                object? defaultValue = GetDefault(property.PropertyType);
-
                 if (theValue == null) return null;
-                if (theValue.Equals(defaultValue)) return null;
+
+                if (!property.PropertyType.IsValueType)
+                {
+                    object? defaultValue = GetDefault(property.PropertyType);
+                    if (theValue.Equals(defaultValue)) return null;
+                }
+
                 return theValue;
             }
         }
