@@ -331,27 +331,27 @@ In this example, the `MyRequest` class specifies that both `Name` and `Age` are 
 
 - **GetInvalidBodyMessage**: Call this method to obtain a detailed string message indicating which fields are missing from the request body.
 
-- **GetMissingProperties**: This method returns a list of property names that are required but not provided.
+- **GetMissingProperties**: This method returns a list of property names that are required but not provided or that are explicitly disallowed.
 
 - **ValidateByRequiredAttributes**: Use this method to perform a quick validation check against the properties marked with the `[Required]` attribute.
 
-The Valid property can be overridden to provide custom validation logic if needed but then the automatically generated error messages might not be accurate since they are based on the `[Required]` attribute.
+The `Valid` property can be overridden to provide custom validation logic if needed, but then the automatically generated error messages might not be accurate since they are based on the `[Required]` attribute.
 
-If the required attribute is not used for any property a custom validation logic should be implemented in the `Valid` property. The `GetInvalidBodyMessage` and `GetMissingProperties` methods can still be used to generate error messages and will then assume all properties that don't have the JsonIgnore attribute are required.
+If the `[Required]` attribute is not used for any property, custom validation logic should be implemented in the `Valid` property. The `GetInvalidBodyMessage` and `GetMissingProperties` methods can still be used to generate error messages and will then assume all properties that do not have the `JsonIgnore` attribute are required.
 
 ### Disallowed Values in the `[Required]` Attribute
 
-The `[Required]` attribute now includes a `DisallowedValue` property, allowing you to specify a value that should **not** be allowed for a property. If a property has this disallowed value, it will not be considered valid.
+The `[Required]` attribute includes a `DisallowedValue` property, allowing you to specify a value that should **not** be allowed for a property. If a property has this disallowed value, it will not be considered valid.
 
 #### Example Usage:
 
 ```csharp
 public class MyRequest : RequestBody
 {
-    [Required(DisallowedValue = 0)] // We don't need to specify 0 for ints though
+    [Required(disallowedValue: 0)] // 0 is allowed unless explicitly disallowed
     public int Age { get; set; }
 
-    [Required(DisallowedValue = "N/A")]
+    [Required(disallowedValue: "N/A")]
     public string Name { get; set; }
 
     public override bool Valid => ValidateByRequiredAttributes();
@@ -362,10 +362,14 @@ In this example:
 - The `Age` property is required and cannot be `0`.
 - The `Name` property is required and cannot be `"N/A"`.
 
-#### Default Disallowed Values for Value Types
+#### Default Behavior for Missing or Invalid Values
 
-For value types like `int`, the default disallowed value is `0` if no `DisallowedValue` is explicitly set. This means an `int` property marked with `[Required]` will not be considered valid if its value is `0`.
-You can say that for value types the `[Required]` attribute requires the value to not be the default value of that. For reference types or nullable value types or reference types the value that is not allowed by default regardless of the `DisallowedValue` property is null. If you want to have a value type that can be 0 you should of course not add the `[Required]` attribute so that it is not required to be non-default (which is often the same as non-zero).
+- For **reference types** and **nullable value types**, a value is considered missing if it is `null`.
+- For **value types** (like `int`, `bool`), the value is **valid by default**, including `0`, unless you explicitly disallow it using `DisallowedValue` or require it to be greater than a value using `GreaterThan`.
+
+If you want to require a value type to be something other than its default (e.g. `int` not equal to `0`), you must explicitly use `[Required(disallowedValue: 0)]`.
+
+If a value like `0` or `false` is acceptable, simply avoid using `[Required]` on that property.
 
 ## ApiException
 

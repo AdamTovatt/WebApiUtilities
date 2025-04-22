@@ -9,20 +9,21 @@ using System.Text.Json.Serialization;
 namespace Sakur.WebApiUtilities.BaseClasses
 {
     /// <summary>
-    /// Request body for a web api request
+    /// Base class for web API request bodies. Supports validation using the <see cref="RequiredAttribute"/>.
     /// </summary>
     public abstract class RequestBody
     {
         /// <summary>
-        /// Should be overridden to tell if a request is valid or not
+        /// Gets whether the request body is valid. Must be overridden in derived classes.
         /// </summary>
         [JsonIgnore]
         public abstract bool Valid { get; }
 
         /// <summary>
-        /// Will return a string containing information about which fields are missing
+        /// Generates a message listing the names of any missing or invalid required properties.
         /// </summary>
-        /// <returns></returns>
+        /// <param name="allowEmptyStrings">If false, empty strings are considered missing.</param>
+        /// <returns>A string describing which fields are missing.</returns>
         public string GetInvalidBodyMessage(bool allowEmptyStrings = false)
         {
             StringBuilder stringBuilder = new StringBuilder("Missing fields in request body: ");
@@ -37,15 +38,17 @@ namespace Sakur.WebApiUtilities.BaseClasses
         }
 
         /// <summary>
-        /// Will return a list of property names for the properties that are missing in the body
+        /// Gets a list of property names that are missing or invalid based on required attributes.
         /// </summary>
-        /// <returns>A list of strings - the names of the missing properties (fields) in the body</returns>
+        /// <param name="allowEmptyStrings">If false, empty strings are considered missing.</param>
+        /// <returns>A list of missing or invalid property names.</returns>
         public List<string> GetMissingProperties(bool allowEmptyStrings = false)
         {
             List<string> properties = new List<string>();
             PropertyInfo[] propertyInfos = GetType().GetProperties();
 
-            PropertyInfo[] requiredProperties = GetType().GetProperties().Where(x => x.IsDefined(typeof(RequiredAttribute), false)).ToArray();
+            PropertyInfo[] requiredProperties = GetType().GetProperties()
+                .Where(x => x.IsDefined(typeof(RequiredAttribute), false)).ToArray();
 
             if (requiredProperties.Length > 0)
             {
@@ -57,13 +60,14 @@ namespace Sakur.WebApiUtilities.BaseClasses
                     {
                         properties.Add(property.Name);
                     }
-                    else // It does have a value but maybe it's not allowed, we have to check that
+                    else
                     {
                         RequiredAttribute requiredAttribute = property.GetCustomAttribute<RequiredAttribute>()!;
                         if (requiredAttribute.DisallowedValue != null && value.Equals(requiredAttribute.DisallowedValue))
-                            properties.Add(property.Name); // We add it if a dissallowed value is specified and matches with the value of the property
+                            properties.Add(property.Name);
 
-                        if (requiredAttribute.GreaterThan != null && property.PropertyType == typeof(int) && !((int)value > requiredAttribute.GreaterThan))
+                        if (requiredAttribute.GreaterThan != null && property.PropertyType == typeof(int) &&
+                            !((int)value > requiredAttribute.GreaterThan))
                             properties.Add(property.Name);
                     }
                 }
@@ -84,12 +88,14 @@ namespace Sakur.WebApiUtilities.BaseClasses
         }
 
         /// <summary>
-        /// Used to automatically validate the request body based on the Required attribute.
+        /// Validates the request body using the <see cref="RequiredAttribute"/> on properties.
         /// </summary>
-        /// <returns>Wether or not all the required properties were provided</returns>
+        /// <param name="allowEmptyStrings">If false, empty strings are considered invalid.</param>
+        /// <returns>True if all required properties are valid; otherwise false.</returns>
         public bool ValidateByRequiredAttributes(bool allowEmptyStrings = false)
         {
-            PropertyInfo[] requiredProperties = GetType().GetProperties().Where(x => x.IsDefined(typeof(RequiredAttribute), false)).ToArray();
+            PropertyInfo[] requiredProperties = GetType().GetProperties()
+                .Where(x => x.IsDefined(typeof(RequiredAttribute), false)).ToArray();
 
             foreach (PropertyInfo property in requiredProperties)
             {
@@ -99,13 +105,14 @@ namespace Sakur.WebApiUtilities.BaseClasses
                 {
                     return false;
                 }
-                else // It does have a value but maybe it's not allowed, we have to check that
+                else
                 {
                     RequiredAttribute requiredAttribute = property.GetCustomAttribute<RequiredAttribute>()!;
                     if (requiredAttribute.DisallowedValue != null && value.Equals(requiredAttribute.DisallowedValue))
-                        return false; // We say it is not valid if a dissallowed value is specified and matches with the value of the property
+                        return false;
 
-                    if (requiredAttribute.GreaterThan != null && property.PropertyType == typeof(int) && !((int)value > requiredAttribute.GreaterThan))
+                    if (requiredAttribute.GreaterThan != null && property.PropertyType == typeof(int) &&
+                        !((int)value > requiredAttribute.GreaterThan))
                         return false;
                 }
             }
@@ -114,17 +121,16 @@ namespace Sakur.WebApiUtilities.BaseClasses
         }
 
         /// <summary>
-        /// Will get a value, checking if it exists. If it isn't considered to exist null will be returned, otherwise the value will be returned.
+        /// Gets the value of a property, optionally treating empty strings or default values as null.
         /// </summary>
-        /// <param name="allowEmptyStrings">Wether to allow empty strings or not.</param>
-        /// <param name="property">The property to get the value of.</param>
-        /// <returns>The value of it exists, null otherwise.</returns>
+        /// <param name="allowEmptyStrings">If false, empty strings are treated as null.</param>
+        /// <param name="property">The property to get the value from.</param>
+        /// <returns>The value, or null if considered missing.</returns>
         private object? GetValue(bool allowEmptyStrings, PropertyInfo property)
         {
             if (property.PropertyType == typeof(string))
             {
                 string? value = (string?)property.GetValue(this);
-
                 if (value == null || (!allowEmptyStrings && value == string.Empty))
                     return null;
 
@@ -145,6 +151,11 @@ namespace Sakur.WebApiUtilities.BaseClasses
             }
         }
 
+        /// <summary>
+        /// Gets the default value for a given type.
+        /// </summary>
+        /// <param name="type">The type to get the default value for.</param>
+        /// <returns>The default value.</returns>
         private static object? GetDefault(Type type)
         {
             if (type.IsValueType)

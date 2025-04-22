@@ -3,39 +3,39 @@
 namespace Sakur.WebApiUtilities.Models
 {
     /// <summary>
-    /// Used to specify that a property is required in a request body not necessary if the validation of the body is done manually and the message for missing properties is
-    /// set manually. But this is good to use if you want to be able to automatically validate the body and get a message for which properties are missing.
+    /// Attribute used to mark properties as required in a request body.
+    /// Supports disallowed values and integer range checks.
     /// </summary>
     public class RequiredAttribute : Attribute
     {
         /// <summary>
-        /// The value that should not be allowed on a property.
+        /// A value that is not allowed. If the property has this value, it is considered invalid.
         /// </summary>
         public object? DisallowedValue { get; set; }
 
         /// <summary>
-        /// Value that the value has to be greater than to be considered valid.
+        /// A minimum allowed value for integer properties. The property must be greater than this value.
         /// </summary>
         public int? GreaterThan { get; set; }
 
         /// <summary>
-        /// Creates a required attribute with no additional info.
+        /// Creates a new <see cref="RequiredAttribute"/> with no additional constraints.
         /// </summary>
         public RequiredAttribute() { }
 
         /// <summary>
-        /// Creates a required attribute with a disallowed value.
+        /// Creates a new <see cref="RequiredAttribute"/> with a disallowed value.
         /// </summary>
-        /// <param name="disallowedValue">The value that the property that this attribute is set on is not allowed to have.</param>
+        /// <param name="disallowedValue">A value that the property must not have.</param>
         public RequiredAttribute(object disallowedValue)
         {
             DisallowedValue = disallowedValue;
         }
 
         /// <summary>
-        /// Creates a required attribute with a specified int value that the parameter has to be greater than. Only checks against this if the type of the value that is required is an int type.
+        /// Creates a new <see cref="RequiredAttribute"/> that enforces the value to be greater than a specified integer.
         /// </summary>
-        /// <param name="greaterThan">The value that the checked value has to be greater than if it is an int type.</param>
+        /// <param name="greaterThan">The value must be greater than this if the property is an integer.</param>
         public RequiredAttribute(int greaterThan)
         {
             GreaterThan = greaterThan;
