@@ -5,10 +5,10 @@ A lightweight NuGet package designed to enhance web API development in ASP.NET C
 
 ## Key Features
 - **Rate Limiting**: Implement request rate limiting using `ClientStatistics` to track and enforce limits on client requests.
-- **Authentication Setup**: Simplifies configuration of authentication schemes with customizable parameters for domains, audiences, and roles.
+- **Authentication Setup**: Simplifies configuration of authentication schemes with customizable parameters for domains, audiences, and roles. Both with external auth validation like Auth0 and with local like a local "magic link" solution. There is also support for very simple api keys for application to application usage.
 - **Scheduled Tasks**: Allows for the creation and management of recurring tasks that can be scheduled at specific intervals or times.
 - **Request Body Validation**: Automatically validates incoming request bodies with detailed error reporting for missing fields.
-- **Error Handling**: Provides `ApiException` and `ApiResponse` classes for structured error management and consistent API responses.
+- **Error Handling**: Provides `ApiException` and `ApiResponse` classes for structured error management and consistent API responses. The middleware for ApiExceptions can be added to handle any exceptions that are thrown to ensure responses are always in the same format.
 - **Connection String Utilities**: Simplifies the creation of connection strings for database connections with custom SSL configurations.
 - **Password Management**: Offers methods for hashing, validating, and generating random passwords.
 - **Extension Methods**: Includes various helpful extension methods for common tasks, such as string manipulation and object property transfer.
@@ -50,7 +50,7 @@ In `Program.cs`, configure the authentication with the following:
 ```csharp
 builder.Services.SetupAuth(authDomain, authAudience, roles, authenticationScheme);
 ```
-Will setup the authentication for the service collection
+Will setup the authentication for the service collection in cases where the token is externally validated like Auth0.
 
 - **Parameters:**
   - `authDomain`: The authentication domain (issuer).
@@ -62,7 +62,7 @@ Will return the service collection for easy chaining.
 
 Example usage:
 ```csharp
-builder.Services.SetupAuth(
+builder.Services.AddExternalJwtAuthentication(
     authDomain: "https://my-auth-domain.com",
     authAudience: "my-api-audience",
     roles: new[] { "Admin", "User" },
@@ -132,10 +132,55 @@ else
 }
 ```
 
+4. **Don't forget to add the validation in Program.cs (or where your WebApplicationBuilder is)**
+```csharp
+builder.Services.AddLocalJwtAuthentication(
+    authDomain: EnvironmentHelper.GetEnvironmentVariable("JWT_ISSUER"),
+    authAudience: EnvironmentHelper.GetEnvironmentVariable("JWT_AUDIENCE"),
+    permissions: new List<string>() { "admin" },
+    jwtSecretKey: EnvironmentHelper.GetEnvironmentVariable("JWT_SECRET", 24) // minimum length of 24 characters
+);
+```
+In the example above the authDomain, authAudience and jwtSecretKey are taken from the environment variables. You can provide them however you like and this is just one example of how to it could be done.
+
 ### Notes
 
 - **Token Expiration**: The magic link token has a configurable expiration time (default is 15 minutes).
 - **Security**: Ensure the magic link is sent securely and only to the intended recipient.
+
+## Middleware
+
+The `ApiExceptionMiddleware` handles any unhandled exceptions during request processing and ensures a consistent response format by returning an instance of `ApiResponse`.
+
+Add it to the middleware pipeline in `Program.cs`:
+
+```csharp
+app.UseMiddleware<ApiExceptionMiddleware>();
+```
+
+### API Key Authorization
+
+Instead of using middleware, API key validation is now done using the `[RequireApiKey]` attribute together with the `ApiKeyFilter`. This allows you to selectively apply API key protection to specific controllers or actions.
+
+Register the filter when configuring controllers:
+
+```csharp
+services.AddControllers(options =>
+{
+    options.Filters.Add<ApiKeyFilter>();
+});
+```
+
+Then apply the attribute like this:
+
+```csharp
+[RequireApiKey]
+[HttpGet("secure-endpoint")]
+public IActionResult SecureEndpoint()
+{
+    return Ok("You provided a valid API key.");
+}
+```
 
 ## Scheduled Tasks
 WebApiUtilities provides utilities for setting up scheduled tasks that can run at specific times or intervals. This is useful for automating recurring operations, such as data cleanup, sending periodic notifications, or syncing external data.
