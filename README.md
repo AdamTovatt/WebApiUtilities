@@ -9,6 +9,7 @@ A lightweight NuGet package designed to enhance web API development in ASP.NET C
 - **Scheduled Tasks**: Allows for the creation and management of recurring tasks that can be scheduled at specific intervals or times.
 - **Request Body Validation**: Automatically validates incoming request bodies with detailed error reporting for missing fields.
 - **Error Handling**: Provides `ApiException` and `ApiResponse` classes for structured error management and consistent API responses. The middleware for ApiExceptions can be added to handle any exceptions that are thrown to ensure responses are always in the same format.
+- **Resource Mapping**: Provides a ```ResourceHelper``` that together with the ```Resource``` type allows for statically typed non-code resources that can be verified to exist in unit tests and/or at application startup to avoid runtime errors or excessive file existance checking and missing file handling together with hardcoded paths for files that just hopefully exist all the time.
 - **Connection String Utilities**: Simplifies the creation of connection strings for database connections with custom SSL configurations.
 - **Password Management**: Offers methods for hashing, validating, and generating random passwords.
 - **Extension Methods**: Includes various helpful extension methods for common tasks, such as string manipulation and object property transfer.
@@ -39,7 +40,6 @@ Now, use the [Limit] attribute to specify limits for controller methods:
 ```
 - **MaxRequests**: Maximum number of requests allowed within the `TimeWindow` period.
 - **TimeWindow**: The time window (in seconds) during which `MaxRequests` is allowed.
-
 
 ## Auth
 This package simplifies authentication configuration in your Web API.
@@ -407,6 +407,90 @@ The `ApiResponse` class is designed to encapsulate the response returned by the 
     - An optional error message.
     - An optional error object containing additional data related to the exception.
     - The appropriate HTTP status code derived from the exception.
+
+## Resource Management
+
+The library includes utilities for managing embedded resources in a structured and type-safe way using the `ResourceHelper` and `Resource` struct.
+
+### Overview
+
+Embedded resources can be used to include static files (e.g., `.html`, `.csv`, `.pdf`, etc.) directly in your assembly. This is useful for shipping files with your application without depending on the file system. The `ResourceHelper` provides APIs to read these files, while the `Resource` struct allows for structured mappings. This allows for statically typed resources that you can be sure actually exist at the expected path during runtime. No more hardcoded strings and checking if a file exists and trying to come up with a way to handle the case when it doesn't over and over again in the code.
+
+### Initialization
+
+The `ResourceHelper` is a singleton and must be initialized before use. You should call `ResourceHelper.Initialize()` early in your program, such as at application startup.
+
+```csharp
+// Startup.cs or Program.cs
+ResourceHelper.Initialize(); // Verifies resource mappings and prepares for use
+```
+
+This method ensures that all resources mapped in your `Resource` struct exist as embedded files and vice versa. It's recommended to call this in unit tests too to detect mismatches during testing to avoid runtime errors. Still, if you forget that, provided you set it up to call Initialize() as early as possible in the real code you will just get a runtime error right at startup instead of suddenly in the middle of running the program.
+
+### Creating Custom Resources
+
+Define your embedded resources using the `Resource` struct in a nested class structure like this:
+
+```csharp
+public readonly partial struct Resource
+{
+    public static class Templates
+    {
+        public static readonly Resource InvoiceHtml = new Resource("Templates/invoice.html");
+        public static readonly Resource ReportCsv = new Resource("Templates/report.csv");
+    }
+
+    public static class Documents
+    {
+        public static readonly Resource GuidePdf = new Resource("Documents/guide.pdf");
+    }
+}
+```
+
+The embedded files must reside in a `Resources` folder, and their paths must match the structure defined in the resource mappings. For example, here we would have the code project with a directory Resources that has a subdirectory Templates and another one called Documents. The Resources/Templates contains invoice.html and report.csv and Resources/Documents contains guide.pdf.
+
+**Important:** Ensure these files are marked as `EmbeddedResource` in your `.csproj` file:
+
+```xml
+<ItemGroup>
+  <EmbeddedResource Include="Resources\**\*" />
+</ItemGroup>
+```
+
+The above code will automatically set all files in the Resources directory to embedded resource build type. If using this, make sure your own ```partial struct Resource``` is not defined in that directory. Or, if you want to define it in that directory, you can skip adding this to the project file and instead just mark each resource file as an embedded resource.
+
+In Visual Studio, just right click the file, go to properties. Set the ```Build Action``` to ```Embedded Resource```.
+
+### Reading Resources
+
+Once initialized, you can read embedded resources using the helper:
+
+```csharp
+string htmlContent = await ResourceHelper.Instance.ReadAsStringAsync(Resource.Templates.InvoiceHtml);
+
+using Stream pdfStream = ResourceHelper.Instance.GetFileStream(Resource.Documents.GuidePdf);
+```
+
+You can also get the MIME type of a file:
+
+```csharp
+string contentType = ResourceHelper.Instance.GetContentType(Resource.Templates.ReportCsv); // returns "text/csv"
+```
+
+### Deserializing Previous Resources
+If you have code that gets a resource using the ```ResourceHelper```, then that code serializes or in some way saves the path to that resource for later use you can manually create an instance of ```Resource``` from that path string so that you can use it with ```ResourceHelper```. This is done by calling ```Resource.CreateUnverified(path)```. Please note, that by doing this, you are bypassing the file verification. Manually creating a ```Resource``` means that the ```ResourceHelper``` can not ensure that it exists in the unit tests or at application startup which might lead to unexpected run time errors (like the ones you always have to handle without this system) of the file not existing even though you have a path to it.
+
+This means that it's very important to only use the ```Resource.CreateUnverified(path)``` if you are certain that that resource actually exists.
+
+### Tips
+
+- Call `ResourceHelper.Initialize()` at startup and in tests.
+- Define all resources in a nested structure inside the `Resource` struct.
+- Ensure all files are marked as embedded in the project file.
+- Use `Resource.CreateUnverified(path)` cautiously — only when deserializing trusted input.
+
+This setup ensures safe, verifiable usage of embedded resources with strong typing and clear validation.
+
 
 # Helper Classes Summary
 
