@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WebApiUtilities.TaskScheduling;
 
 namespace Sakur.WebApiUtilities.TaskScheduling
 {
@@ -16,17 +17,20 @@ namespace Sakur.WebApiUtilities.TaskScheduling
         private readonly List<ScheduledTaskBase> _tasks;
         private readonly List<Timer> _timers;
         private readonly ILogger<ScheduledTaskManager>? _logger;
+        private readonly IDateTimeNowProvider _dateTimeNowProvider;
 
         /// <summary>
         /// Public constructor.
         /// </summary>
         /// <param name="tasks">The tasks that should be scheduled.</param>
         /// <param name="logger">A logger that can log errors.</param>
-        public ScheduledTaskManager(IEnumerable<ScheduledTaskBase> tasks, ILogger<ScheduledTaskManager>? logger)
+        /// <param name="dateTimeNowProvider">A provider for getting the current time. Used so that what is considered to be "now" can be controlled so that tasks can easily be scheduled at a certain time of day in any time zone or similar.</param>
+        public ScheduledTaskManager(IEnumerable<ScheduledTaskBase> tasks, ILogger<ScheduledTaskManager>? logger, IDateTimeNowProvider dateTimeNowProvider)
         {
             _tasks = tasks.ToList();
             _timers = new List<Timer>();
             _logger = logger;
+            _dateTimeNowProvider = dateTimeNowProvider;
         }
 
         /// <summary>
@@ -61,7 +65,7 @@ namespace Sakur.WebApiUtilities.TaskScheduling
         private void ScheduleDailyTask(TimeOfDayTask task, CancellationToken cancellationToken)
         {
             TimeSpan scheduledTime = task.ScheduledTime;
-            DateTime now = DateTime.Now;
+            DateTime now = _dateTimeNowProvider.GetNow();
             DateTime firstRun = new DateTime(now.Year, now.Month, now.Day, scheduledTime.Hours, scheduledTime.Minutes, 0);
 
             if (now > firstRun) firstRun = firstRun.AddDays(1); // Calculate the initial delay
