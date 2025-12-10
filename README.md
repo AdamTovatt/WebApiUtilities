@@ -1,4 +1,7 @@
 # WebApiUtilities
+> [!IMPORTANT]
+> This library is quite old and I would not create new projects using it. Refer to [EasyReasy](https://github.com/AdamTovatt/easy-reasy) instead.
+
 A lightweight NuGet package designed to enhance web API development in ASP.NET Core. It provides various utilities and features to streamline common tasks and improve the efficiency of API development.
 
 **NuGet link:** [SakurWebApiUtilities](https://www.nuget.org/packages/SakurWebApiUtilities/)
